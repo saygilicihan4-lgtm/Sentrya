@@ -1,0 +1,2 @@
+import {NextRequest,NextResponse} from "next/server";import {evaluatePolicy} from "../../../../lib/policy";
+export async function POST(req:NextRequest){try{const body=await req.json();if(!body.agentId||!body.action)return NextResponse.json({error:"agentId and action are required"},{status:400});const result=evaluatePolicy(body);return NextResponse.json({requestId:crypto.randomUUID(),agentId:body.agentId,action:body.action,resource:body.resource??null,...result,evaluatedAt:new Date().toISOString()});}catch{return NextResponse.json({error:"Invalid JSON body"},{status:400});}}
