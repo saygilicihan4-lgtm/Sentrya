@@ -1,7 +1,10 @@
+import { requireDemoWrite } from "../../../../../lib/demo-auth";
 import { NextResponse } from "next/server";
 import { getDb } from "../../../../../lib/db";
 
-export async function POST() {
+export async function POST(req: Request) {
+  const auth = requireDemoWrite(req);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
   try {
     const sql = getDb();
     const rows = await sql`
