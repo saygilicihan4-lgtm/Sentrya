@@ -5,9 +5,12 @@ export type AgentStatus = "ACTIVE" | "PAUSED" | "KILLED";
 export async function listAgents() {
   const sql = getDb();
   return sql`
-    SELECT id, organization_id, name, external_id, status, risk_level, created_at
-    FROM agents
-    ORDER BY created_at DESC
+    SELECT a.id, a.organization_id, a.name, a.external_id, a.status, a.risk_level, a.created_at
+    FROM agents a
+    JOIN organizations o ON o.id = a.organization_id
+    WHERE o.slug = 'sentrya-demo'
+    ORDER BY a.created_at DESC
+    LIMIT 50
   `;
 }
 
@@ -15,9 +18,10 @@ export async function killAgent(id: string, reason = "Emergency kill switch", tr
   const sql = getDb();
   const rows = await sql`
     WITH target AS (
-      SELECT id, organization_id, status
-      FROM agents
-      WHERE id = ${id}::uuid
+      SELECT a.id, a.organization_id, a.status
+      FROM agents a
+      JOIN organizations o ON o.id = a.organization_id
+      WHERE a.id = ${id}::uuid AND o.slug = 'sentrya-demo'
       FOR UPDATE
     ),
     updated AS (
