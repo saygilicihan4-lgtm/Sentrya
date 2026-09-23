@@ -21,3 +21,6 @@ npm run dev
 4. Human approval workflow
 5. Authentication and organization isolation
 6. Deployment + design-partner pilot
+
+
+<!-- Production deployment trigger: 2026-09-24 -->
