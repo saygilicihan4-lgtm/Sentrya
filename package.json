@@ -1,1 +1,24 @@
-{"name":"sentrya","version":"0.1.0","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start","lint":"next lint"},"dependencies":{"@neondatabase/serverless":"1.0.2","next":"16.3.6","react":"19.2.0","react-dom":"19.2.0"},"devDependencies":{"typescript":"^5.9.3","@types/node":"^24.10.0","@types/react":"^19.2.2","@types/react-dom":"^19.2.2"}}
+{
+  "name": "sentrya",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "1.0.2",
+    "next": "16.3.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2"
+  }
+}
