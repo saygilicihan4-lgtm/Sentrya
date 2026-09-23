@@ -1,1 +1,37 @@
-export type Agent={id:string,name:string,status:"ACTIVE"|"PAUSED"|"KILLED",scopes:string[]};const agents:Agent[]=[{id:"deploy-bot-07",name:"Deploy Bot",status:"ACTIVE",scopes:["github.read","github.pull_request"]},{id:"sales-agent-02",name:"Sales Agent",status:"ACTIVE",scopes:["crm.read","gmail.draft"]}];export function listAgents(){return agents}export function killAgent(id:string){const a=agents.find(x=>x.id===id);if(!a)return null;a.status="KILLED";return a}
+import { getDb } from "./db";
+
+export type AgentStatus = "ACTIVE" | "PAUSED" | "KILLED";
+
+export async function listAgents() {
+  const sql = getDb();
+  return sql`
+    SELECT id, organization_id, name, external_id, status, risk_level, created_at
+    FROM agents
+    ORDER BY created_at DESC
+  `;
+}
+
+export async function killAgent(id: string, reason = "Emergency kill switch", triggeredBy = "sentrya-console") {
+  const sql = getDb();
+  const rows = await sql`
+    WITH target AS (
+      SELECT id, organization_id, status
+      FROM agents
+      WHERE id = ${id}::uuid
+      FOR UPDATE
+    ),
+    updated AS (
+      UPDATE agents a
+      SET status = 'KILLED'
+      FROM target t
+      WHERE a.id = t.id
+      RETURNING a.id, a.organization_id, t.status AS previous_status, a.status AS new_status
+    )
+    INSERT INTO kill_switch_events
+      (organization_id, agent_id, previous_status, new_status, reason, triggered_by)
+    SELECT organization_id, id, previous_status, new_status, ${reason}, ${triggeredBy}
+    FROM updated
+    RETURNING agent_id, previous_status, new_status, created_at
+  `;
+  return rows[0] ?? null;
+}
