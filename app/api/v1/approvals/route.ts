@@ -1,3 +1,4 @@
+import { requireDemoWrite } from "../../../../lib/demo-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "../../../../lib/db";
 
@@ -13,6 +14,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = requireDemoWrite(req);
+  if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
   try {
     const { id, decision } = await req.json();
     if (!id || !["APPROVED","DENIED"].includes(decision)) return NextResponse.json({ error: "id and APPROVED/DENIED decision required" }, { status: 400 });
