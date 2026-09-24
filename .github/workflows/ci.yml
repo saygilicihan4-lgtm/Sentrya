@@ -14,3 +14,35 @@ jobs:
       - run: npm install
       - run: npm run typecheck
       - run: npm run build
+      - name: Runtime smoke test
+        run: |
+          npm start > /tmp/sentrya.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID || true' EXIT
+          for i in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:3000/api/v1/health > /tmp/health.json; then
+              break
+            fi
+            sleep 1
+          done
+          cat /tmp/health.json
+          node - <<'NODE'
+          const health = await fetch("http://127.0.0.1:3000/api/v1/health").then(r => r.json());
+          if (health.status !== "ok") throw new Error("health endpoint failed");
+
+          const response = await fetch("http://127.0.0.1:3000/api/v1/evaluate", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              agentId: "ci-agent",
+              action: "github.delete_repository",
+              resource: "ci/test-repository"
+            })
+          });
+          if (!response.ok) throw new Error("policy endpoint returned " + response.status);
+          const evaluation = await response.json();
+          if (evaluation.decision !== "DENY" || evaluation.risk !== "CRITICAL" || evaluation.persisted !== false) {
+            throw new Error("unexpected policy result: " + JSON.stringify(evaluation));
+          }
+          console.log("runtime smoke passed", evaluation);
+          NODE
