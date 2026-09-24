@@ -14,19 +14,17 @@ export default function Demo(){
   const [busy,setBusy]=useState(false);
   const [approvals,setApprovals]=useState<Approval[]>([]);
   const [audit,setAudit]=useState<AuditEvent[]>([]);
-  function loadApprovals(){fetch("/api/v1/approvals").then(r=>r.json()).then(d=>setApprovals(d.approvals??[])).catch(()=>setApprovals([]));}
-  function loadAudit(){fetch("/api/v1/audit").then(r=>r.json()).then(d=>setAudit(d.events??[])).catch(()=>setAudit([]));}
-  useEffect(()=>{fetch("/api/v1/agents").then(r=>r.json()).then(d=>setAgents(d.agents??[])).catch(()=>setAgents([])); loadApprovals(); loadAudit();},[]);
+  function loadApprovals(){fetch("/api/v1/approvals").then(r=>r.json() as Promise<{approvals?:Approval[]}>).then(d=>setApprovals(d.approvals??[])).catch(()=>setApprovals([]));}
+  function loadAudit(){fetch("/api/v1/audit").then(r=>r.json() as Promise<{events?:AuditEvent[]}>).then(d=>setAudit(d.events??[])).catch(()=>setAudit([]));}
+  useEffect(()=>{fetch("/api/v1/agents").then(r=>r.json() as Promise<{agents?:Agent[]}>).then(d=>setAgents(d.agents??[])).catch(()=>setAgents([])); loadApprovals(); loadAudit();},[]);
   async function evaluate(){
     setBusy(true); setResult(null);
     try{
       const r=await fetch("/api/v1/evaluate",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({agentId:"demo-agent",action,resource:"production/core-api"})});
-      setResult(await r.json());
+      setResult(await r.json() as Result);
     }catch{setResult({error:"Request failed"});}
     finally{setBusy(false); loadApprovals(); loadAudit();}
   }
-  async function resolveApproval(id:string,decision:"APPROVED"|"DENIED"){await fetch("/api/v1/approvals",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,decision})});loadApprovals();}
-
 
   return <main>
     <nav><a href="/" style={{color:"inherit",textDecoration:"none"}}><b>SENTRYA</b></a><span>LIVE CONTROL PLANE</span></nav>
