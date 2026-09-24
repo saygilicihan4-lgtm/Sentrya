@@ -4,7 +4,10 @@ import { evaluatePolicy } from "../../../../../lib/policy";
 
 export async function POST(req: Request) {
   try {
+    const length = Number(req.headers.get("content-length") ?? "0");
+    if (Number.isFinite(length) && length > 65_536) return NextResponse.json({ error: "Payload too large" }, { status: 413 });
     const bodyText = await req.text();
+    if (Buffer.byteLength(bodyText, "utf8") > 65_536) return NextResponse.json({ error: "Payload too large" }, { status: 413 });
     const auth = verifyAgentRequest(req, bodyText);
     if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
 
