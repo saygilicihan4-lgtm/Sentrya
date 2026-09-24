@@ -1,7 +1,7 @@
 "use client";
 import { FormEvent, useState } from "react";
 type Agent={id:string;name:string;status:string;risk_level:string};
-type Approval={id:string;action:string;resource?:string;risk_level:string;status:string};
+type Approval={id:string;action:string;resource?:string;risk_level?:string;status:string};
 
 export default function AdminDemo() {
   const [key,setKey]=useState(""); const [logged,setLogged]=useState(false); const [message,setMessage]=useState(""); const [busy,setBusy]=useState(false);
