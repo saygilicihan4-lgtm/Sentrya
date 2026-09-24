@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb } from "../../../../../lib/db";
 
 export async function GET() {
-  const checks = { api: "ok", database: "unknown", demoTenant: "unknown" };
+  const checks: { api: string; database: string; demoTenant: string } = { api: "ok", database: "unknown", demoTenant: "unknown" };
   try {
     const sql = getDb();
     await sql`SELECT 1 AS ok`;
