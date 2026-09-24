@@ -160,7 +160,7 @@ jobs:
           if (badLogin.status !== 401) throw new Error("wrong admin key should return 401, got " + badLogin.status);
 
           const oversizedLogin = await fetch("http://127.0.0.1:3000/api/v1/admin/login", {
-            method: "POST", headers: { "content-type": "application/json", "content-length": "5000" }, body: JSON.stringify({ key: "x" })
+            method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: "x".repeat(5000) })
           });
           if (oversizedLogin.status !== 413) throw new Error("oversized login should return 413, got " + oversizedLogin.status);
 
