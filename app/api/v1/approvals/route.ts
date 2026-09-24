@@ -19,7 +19,9 @@ export async function POST(req: NextRequest) {
   const auth = requireDemoWrite(req);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
   try {
-    const { id, decision } = await req.json();
+    const body: { id?: unknown; decision?: unknown } = await req.json();
+    const id = typeof body.id === "string" ? body.id : "";
+    const decision = typeof body.decision === "string" ? body.decision : "";
     if (!id || !["APPROVED","DENIED"].includes(decision)) return NextResponse.json({ error: "id and APPROVED/DENIED decision required" }, { status: 400 });
     const sql = getDb();
     const rows = await sql`UPDATE approval_requests ar SET status=${decision}, resolved_at=NOW(), resolved_by='human-demo'
