@@ -6,7 +6,7 @@ import { requireDemoWrite } from "../../../../lib/demo-auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const raw: { agentId?: unknown; action?: unknown; resource?: unknown } = await req.json();
+    const raw = await req.json() as { agentId?: unknown; action?: unknown; resource?: unknown };
     const body = {
       agentId: typeof raw.agentId === "string" ? raw.agentId : "",
       action: typeof raw.action === "string" ? raw.action : "",
