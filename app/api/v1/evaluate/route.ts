@@ -6,7 +6,12 @@ import { requireDemoWrite } from "../../../../lib/demo-auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const raw: { agentId?: unknown; action?: unknown; resource?: unknown } = await req.json();
+    const body = {
+      agentId: typeof raw.agentId === "string" ? raw.agentId : "",
+      action: typeof raw.action === "string" ? raw.action : "",
+      resource: typeof raw.resource === "string" ? raw.resource : undefined
+    };
     if (!body.agentId || !body.action) return NextResponse.json({ error: "agentId and action are required" }, { status: 400 });
 
     const result = evaluatePolicy(body);
