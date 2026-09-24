@@ -17,6 +17,7 @@ jobs:
       - name: Runtime smoke test
         env:
           SENTRYA_AGENT_SIGNING_KEY: ci-only-signing-key
+          SENTRYA_DEMO_ADMIN_KEY: ci-only-admin-key
           SENTRYA_GITHUB_WEBHOOK_SECRET: ci-only-webhook-secret
         run: |
           npm start > /tmp/sentrya.log 2>&1 &
@@ -149,5 +150,23 @@ jobs:
           });
           if (forgedWebhook.status !== 401) throw new Error("forged webhook should return 401, got " + forgedWebhook.status);
 
-          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status, githubGate, webhook: webhookResult, forgedWebhookStatus: forgedWebhook.status });
+          const badLogin = await fetch("http://127.0.0.1:3000/api/v1/admin/login", {
+            method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: "wrong-key" })
+          });
+          if (badLogin.status !== 401) throw new Error("wrong admin key should return 401, got " + badLogin.status);
+
+          const login = await fetch("http://127.0.0.1:3000/api/v1/admin/login", {
+            method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: process.env.SENTRYA_DEMO_ADMIN_KEY })
+          });
+          if (!login.ok) throw new Error("admin login failed with " + login.status);
+          const cookie = login.headers.get("set-cookie");
+          if (!cookie || !cookie.includes("sentrya_admin=") || !cookie.toLowerCase().includes("httponly")) {
+            throw new Error("admin login did not issue HttpOnly session cookie");
+          }
+          const githubStatus = await fetch("http://127.0.0.1:3000/api/v1/integrations/github/status", {
+            headers: { cookie }
+          });
+          if (!githubStatus.ok) throw new Error("admin session was not accepted, got " + githubStatus.status);
+
+          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status, githubGate, webhook: webhookResult, forgedWebhookStatus: forgedWebhook.status, badLoginStatus: badLogin.status, adminSessionStatus: githubStatus.status });
           NODE
