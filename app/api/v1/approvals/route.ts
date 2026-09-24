@@ -25,8 +25,9 @@ export async function POST(req: NextRequest) {
     const rows = await sql`UPDATE approval_requests ar SET status=${decision}, resolved_at=NOW(), resolved_by='human-demo'
       FROM organizations o WHERE ar.organization_id=o.id AND o.slug='sentrya-demo' AND ar.id=${id}::uuid AND ar.status='PENDING'
       RETURNING ar.id, ar.request_id, ar.action, ar.status, ar.resolved_at, ar.resolved_by`;
-    if (!rows[0]) return NextResponse.json({ error: "Pending approval not found" }, { status: 404 });
-    return NextResponse.json({ approval: rows[0] });
+    const resultRows = Array.from(rows as unknown as Array<Record<string, unknown>>);
+    if (!resultRows[0]) return NextResponse.json({ error: "Pending approval not found" }, { status: 404 });
+    return NextResponse.json({ approval: resultRows[0] });
   } catch (error) {
     console.error("approval_resolution_failed", error);
     return NextResponse.json({ error: "Approval resolution failed" }, { status: 503 });
