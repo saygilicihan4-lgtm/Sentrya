@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHash } from "crypto";
+import { createHash, randomUUID } from "crypto";
 import { evaluatePolicy } from "../../../../lib/policy";
 import { getDb } from "../../../../lib/db";
 import { requireDemoWrite } from "../../../../lib/demo-auth";
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     if (!body.agentId || !body.action) return NextResponse.json({ error: "agentId and action are required" }, { status: 400 });
 
     const result = evaluatePolicy(body);
-    const requestId = crypto.randomUUID();
+    const requestId = randomUUID();
     const auth = requireDemoWrite(req);
 
     // Public demo evaluations are intentionally read-only. Only authenticated
