@@ -18,11 +18,13 @@ export async function POST(req: NextRequest) {
     if (auth.ok) {
       const sql = getDb();
       const orgs = await sql`SELECT id FROM organizations WHERE slug = 'sentrya-demo' LIMIT 1`;
-      const organizationId = (orgs[0] as Record<string, unknown> | undefined)?.id as string | undefined;
+      const orgRows = Array.from(orgs as unknown as Array<{ id?: unknown }>);
+      const organizationId = orgRows[0]?.id as string | undefined;
 
       if (organizationId) {
         const last = await sql`SELECT event_hash FROM audit_events WHERE organization_id = ${organizationId}::uuid ORDER BY created_at DESC LIMIT 1`;
-        const prevHash = ((last[0] as Record<string, unknown> | undefined)?.event_hash as string | undefined) ?? null;
+        const lastRows = Array.from(last as unknown as Array<{ event_hash?: unknown }>);
+        const prevHash = (lastRows[0]?.event_hash as string | undefined) ?? null;
         const payload = JSON.stringify({ requestId, agentId: body.agentId, action: body.action, resource: body.resource ?? null, decision: result.decision, risk: result.risk });
         const eventHash = createHash("sha256").update((prevHash ?? "") + payload).digest("hex");
         await sql`INSERT INTO audit_events (organization_id, event_type, actor_type, actor_id, action, resource, decision, risk_level, metadata, prev_hash, event_hash)
