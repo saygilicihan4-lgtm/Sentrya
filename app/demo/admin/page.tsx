@@ -8,14 +8,14 @@ export default function AdminDemo() {
   const [agents,setAgents]=useState<Agent[]>([]); const [approvals,setApprovals]=useState<Approval[]>([]); const [schema,setSchema]=useState<string>("");
 
   async function refresh(){
-    const [a,p]=await Promise.all([fetch("/api/v1/agents").then(r=>r.json()),fetch("/api/v1/approvals").then(r=>r.json())]);
+    const [a,p]: [{agents?:Agent[]},{approvals?:Approval[]}]=await Promise.all([fetch("/api/v1/agents").then(r=>r.json()),fetch("/api/v1/approvals").then(r=>r.json())]);
     setAgents(a.agents??[]); setApprovals(p.approvals??[]);
   }
   async function login(e:FormEvent){e.preventDefault();setBusy(true);setMessage("");
     const r=await fetch("/api/v1/admin/login",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({key})});
     if(r.ok){setKey("");setLogged(true);setMessage("Secure admin session active.");await refresh();} else setMessage("Admin authentication failed."); setBusy(false);
   }
-  async function checkSchema(){const r=await fetch("/api/v1/admin/schema");const d=await r.json();setSchema(r.ok&&d.ok?"Database schema: VERIFIED":"Database schema: "+(d.missing?.join(", ")||d.error||"FAILED"));}
+  async function checkSchema(){const r=await fetch("/api/v1/admin/schema");const d:{ok?:boolean;missing?:string[];error?:string}=await r.json();setSchema(r.ok&&d.ok?"Database schema: VERIFIED":"Database schema: "+(d.missing?.join(", ")||d.error||"FAILED"));}
   async function logout(){await fetch("/api/v1/admin/login",{method:"DELETE"});setLogged(false);setAgents([]);setApprovals([]);setMessage("Session closed.");}
   async function seed(){setBusy(true);const r=await fetch("/api/v1/demo/seed",{method:"POST"});setMessage(r.ok?"Demo agent enrolled.":"Agent enrollment failed.");await refresh();setBusy(false);}
   async function decide(id:string,decision:"APPROVED"|"DENIED"){setBusy(true);const r=await fetch("/api/v1/approvals",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id,decision})});setMessage(r.ok?"Approval updated.":"Approval update failed.");await refresh();setBusy(false);}
