@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminCookieName, createAdminSession, verifyAdminKey } from "../../../../../lib/demo-auth";
 
 export async function POST(req: NextRequest) {
-  const body: { key?: unknown } = await req.json().catch(() => ({ key: "" }));
+  const body = await req.json().catch(() => ({ key: "" })) as { key?: unknown };
   if (!verifyAdminKey(String(body.key ?? ""))) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const session = createAdminSession();
   const response = NextResponse.json({ ok: true });
