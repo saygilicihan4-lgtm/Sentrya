@@ -8,7 +8,8 @@ export async function GET() {
     await sql`SELECT 1 AS ok`;
     checks.database = "ok";
     const org = await sql`SELECT id FROM organizations WHERE slug='sentrya-demo' LIMIT 1`;
-    checks.demoTenant = (org[0] as Record<string, unknown> | undefined)?.id ? "ok" : "missing";
+    const orgRows = Array.from(org as unknown as Array<{ id?: unknown }>);
+    checks.demoTenant = orgRows[0]?.id ? "ok" : "missing";
     const ready = checks.database === "ok" && checks.demoTenant === "ok";
     return NextResponse.json(
       { service: "sentrya", status: ready ? "ready" : "degraded", checks, version: "0.1.0", time: new Date().toISOString() },
