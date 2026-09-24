@@ -5,7 +5,9 @@ import { getDb } from "../../../../lib/db";
 export async function GET() {
   try {
     const sql = getDb();
-    const rows = await sql`SELECT id, request_id, agent_external_id, action, resource, risk_level, reason, status, created_at, resolved_at, resolved_by FROM approval_requests ORDER BY created_at DESC LIMIT 50`;
+    const rows = await sql`SELECT ar.id, ar.request_id, ar.agent_external_id, ar.action, ar.resource, ar.risk_level, ar.reason, ar.status, ar.created_at, ar.resolved_at, ar.resolved_by
+      FROM approval_requests ar JOIN organizations o ON o.id=ar.organization_id
+      WHERE o.slug='sentrya-demo' ORDER BY ar.created_at DESC LIMIT 50`;
     return NextResponse.json({ approvals: rows });
   } catch (error) {
     console.error("approval_list_failed", error);
@@ -20,7 +22,9 @@ export async function POST(req: NextRequest) {
     const { id, decision } = await req.json();
     if (!id || !["APPROVED","DENIED"].includes(decision)) return NextResponse.json({ error: "id and APPROVED/DENIED decision required" }, { status: 400 });
     const sql = getDb();
-    const rows = await sql`UPDATE approval_requests SET status=${decision}, resolved_at=NOW(), resolved_by='human-demo' WHERE id=${id}::uuid AND status='PENDING' RETURNING id, request_id, action, status, resolved_at, resolved_by`;
+    const rows = await sql`UPDATE approval_requests ar SET status=${decision}, resolved_at=NOW(), resolved_by='human-demo'
+      FROM organizations o WHERE ar.organization_id=o.id AND o.slug='sentrya-demo' AND ar.id=${id}::uuid AND ar.status='PENDING'
+      RETURNING ar.id, ar.request_id, ar.action, ar.status, ar.resolved_at, ar.resolved_by`;
     if (!rows[0]) return NextResponse.json({ error: "Pending approval not found" }, { status: 404 });
     return NextResponse.json({ approval: rows[0] });
   } catch (error) {
