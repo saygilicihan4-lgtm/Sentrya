@@ -14,7 +14,8 @@ export async function POST(req: Request) {
       ON CONFLICT (organization_id, external_id) DO UPDATE SET name=EXCLUDED.name
       RETURNING id, name, external_id, status, risk_level, created_at
     `;
-    return NextResponse.json({ agent: rows[0] ?? null });
+    const resultRows = Array.from(rows as unknown as Array<Record<string, unknown>>);
+    return NextResponse.json({ agent: resultRows[0] ?? null });
   } catch (error) {
     console.error("demo_seed_failed", error);
     return NextResponse.json({ error: "Demo agent seed failed" }, { status: 503 });
