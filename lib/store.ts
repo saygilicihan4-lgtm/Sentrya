@@ -37,5 +37,6 @@ export async function killAgent(id: string, reason = "Emergency kill switch", tr
     FROM updated
     RETURNING agent_id, previous_status, new_status, created_at
   `;
-  return rows[0] ?? null;
+  const resultRows = Array.from(rows as unknown as Array<Record<string, unknown>>);
+  return resultRows[0] ?? null;
 }
