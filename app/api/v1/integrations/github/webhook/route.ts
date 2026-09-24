@@ -4,7 +4,10 @@ import { verifyGitHubWebhook } from "../../../../../../lib/github-webhook";
 const acceptedEvents = new Set(["ping", "installation", "installation_repositories", "repository"]);
 
 export async function POST(req: Request) {
+  const length = Number(req.headers.get("content-length") ?? "0");
+  if (Number.isFinite(length) && length > 1_000_000) return NextResponse.json({ error: "Payload too large" }, { status: 413 });
   const bodyText = await req.text();
+  if (Buffer.byteLength(bodyText, "utf8") > 1_000_000) return NextResponse.json({ error: "Payload too large" }, { status: 413 });
   const verified = verifyGitHubWebhook(req, bodyText);
   if (!verified.ok) return NextResponse.json({ error: verified.error }, { status: verified.status });
 
