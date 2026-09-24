@@ -7,8 +7,12 @@ function secret() {
   return process.env.SENTRYA_DEMO_ADMIN_KEY ?? "";
 }
 
+function sessionSigningKey() {
+  return createHmac("sha256", secret()).update("sentrya-admin-session-v1").digest();
+}
+
 function sign(value: string) {
-  return createHmac("sha256", secret()).update(value).digest("hex");
+  return createHmac("sha256", sessionSigningKey()).update(value).digest("hex");
 }
 
 function safeEqual(a: string, b: string) {
