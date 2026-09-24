@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const auth = requireDemoWrite(req);
   if (!auth.ok) return NextResponse.json({ error: auth.error }, { status: auth.status });
   try {
-    const body: { id?: unknown; decision?: unknown } = await req.json();
+    const body = await req.json() as { id?: unknown; decision?: unknown };
     const id = typeof body.id === "string" ? body.id : "";
     const decision = typeof body.decision === "string" ? body.decision : "";
     if (!id || !["APPROVED","DENIED"].includes(decision)) return NextResponse.json({ error: "id and APPROVED/DENIED decision required" }, { status: 400 });
