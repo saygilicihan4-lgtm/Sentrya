@@ -33,6 +33,10 @@ jobs:
           node - <<'NODE'
           const health = await fetch("http://127.0.0.1:3000/api/v1/health").then(r => r.json());
           if (health.status !== "ok") throw new Error("health endpoint failed");
+          const healthResponse = await fetch("http://127.0.0.1:3000/api/v1/health");
+          if (healthResponse.headers.get("x-content-type-options") !== "nosniff" || healthResponse.headers.get("x-frame-options") !== "DENY") {
+            throw new Error("baseline security headers missing");
+          }
 
           const response = await fetch("http://127.0.0.1:3000/api/v1/evaluate", {
             method: "POST",
@@ -155,6 +159,11 @@ jobs:
           });
           if (badLogin.status !== 401) throw new Error("wrong admin key should return 401, got " + badLogin.status);
 
+          const oversizedLogin = await fetch("http://127.0.0.1:3000/api/v1/admin/login", {
+            method: "POST", headers: { "content-type": "application/json", "content-length": "5000" }, body: JSON.stringify({ key: "x" })
+          });
+          if (oversizedLogin.status !== 413) throw new Error("oversized login should return 413, got " + oversizedLogin.status);
+
           const login = await fetch("http://127.0.0.1:3000/api/v1/admin/login", {
             method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ key: process.env.SENTRYA_DEMO_ADMIN_KEY })
           });
@@ -168,5 +177,5 @@ jobs:
           });
           if (!githubStatus.ok) throw new Error("admin session was not accepted, got " + githubStatus.status);
 
-          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status, githubGate, webhook: webhookResult, forgedWebhookStatus: forgedWebhook.status, badLoginStatus: badLogin.status, adminSessionStatus: githubStatus.status });
+          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status, githubGate, webhook: webhookResult, forgedWebhookStatus: forgedWebhook.status, badLoginStatus: badLogin.status, oversizedLoginStatus: oversizedLogin.status, adminSessionStatus: githubStatus.status });
           NODE
