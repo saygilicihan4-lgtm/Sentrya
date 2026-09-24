@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDb } from "../../../../../lib/db";
+import { getDb } from "../../../../lib/db";
 
 export async function GET() {
   const checks: { api: string; database: string; demoTenant: string } = { api: "ok", database: "unknown", demoTenant: "unknown" };
