@@ -21,8 +21,8 @@ export async function killAgent(id: string, reason = "Emergency kill switch", tr
       SELECT a.id, a.organization_id, a.status
       FROM agents a
       JOIN organizations o ON o.id = a.organization_id
-      WHERE a.id = ${id}::uuid AND o.slug = 'sentrya-demo'
-      FOR UPDATE
+      WHERE a.id = ${id}::uuid AND o.slug = 'sentrya-demo' AND a.status <> 'KILLED'
+      FOR UPDATE OF a
     ),
     updated AS (
       UPDATE agents a
