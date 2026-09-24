@@ -15,6 +15,8 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - name: Runtime smoke test
+        env:
+          SENTRYA_AGENT_SIGNING_KEY: ci-only-signing-key
         run: |
           npm start > /tmp/sentrya.log 2>&1 &
           APP_PID=$!
@@ -65,5 +67,38 @@ jobs:
           });
           if (invalid.status !== 400) throw new Error("invalid request should return 400, got " + invalid.status);
 
-          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status });
+          const { createHmac } = await import("node:crypto");
+          const signedBody = JSON.stringify({ action: "gmail.send_email", resource: "ci/signed-message" });
+          const timestamp = String(Math.floor(Date.now() / 1000));
+          const agentId = "signed-ci-agent";
+          const signature = createHmac("sha256", process.env.SENTRYA_AGENT_SIGNING_KEY)
+            .update(timestamp + "." + agentId + "." + signedBody).digest("hex");
+          const signed = await fetch("http://127.0.0.1:3000/api/v1/agent/evaluate", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-sentrya-agent-id": agentId,
+              "x-sentrya-timestamp": timestamp,
+              "x-sentrya-signature": signature
+            },
+            body: signedBody
+          });
+          const signedResult = await signed.json();
+          if (!signed.ok || signedResult.authenticated !== true || signedResult.decision !== "REQUIRE_APPROVAL") {
+            throw new Error("signed agent request failed: " + JSON.stringify(signedResult));
+          }
+
+          const forged = await fetch("http://127.0.0.1:3000/api/v1/agent/evaluate", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-sentrya-agent-id": agentId,
+              "x-sentrya-timestamp": timestamp,
+              "x-sentrya-signature": "forged"
+            },
+            body: signedBody
+          });
+          if (forged.status !== 401) throw new Error("forged signed request should return 401, got " + forged.status);
+
+          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status });
           NODE
