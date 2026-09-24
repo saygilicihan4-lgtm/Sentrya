@@ -100,5 +100,23 @@ jobs:
           });
           if (forged.status !== 401) throw new Error("forged signed request should return 401, got " + forged.status);
 
-          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status });
+          const githubBody = JSON.stringify({ operation: "delete_repository", repository: "ci/test-repository" });
+          const githubTimestamp = String(Math.floor(Date.now() / 1000));
+          const githubSignature = createHmac("sha256", process.env.SENTRYA_AGENT_SIGNING_KEY)
+            .update(githubTimestamp + "." + agentId + "." + githubBody).digest("hex");
+          const githubGate = await fetch("http://127.0.0.1:3000/api/v1/integrations/github/authorize", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              "x-sentrya-agent-id": agentId,
+              "x-sentrya-timestamp": githubTimestamp,
+              "x-sentrya-signature": githubSignature
+            },
+            body: githubBody
+          }).then(r => r.json());
+          if (githubGate.decision !== "DENY" || githubGate.risk !== "CRITICAL" || githubGate.mayExecute !== false) {
+            throw new Error("GitHub destructive action was not blocked: " + JSON.stringify(githubGate));
+          }
+
+          console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status, githubGate });
           NODE
