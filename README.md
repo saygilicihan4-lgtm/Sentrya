@@ -78,3 +78,5 @@ v0.1 is a hardened pilot MVP, not production-grade authorization infrastructure.
 The code-side GitHub integration is ready for a read-only pilot. Completion requires a real GitHub App installation with least-privilege permissions, deployment secrets configured outside Git, a successful protected repository probe and an end-to-end read-only test. See `docs/GITHUB_APP_PILOT.md`.
 
 <!-- deployment-retry-2026-09-25 -->
+
+<!-- github-app-env-redeploy-2026-09-25 -->
