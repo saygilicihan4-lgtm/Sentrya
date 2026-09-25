@@ -1,7 +1,8 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import { getGitHubWebhookSecret } from "./github-app";
 
 function webhookSecret() {
-  return process.env.SENTRYA_GITHUB_WEBHOOK_SECRET ?? "";
+  return getGitHubWebhookSecret();
 }
 
 function safeEqual(a: string, b: string) {
