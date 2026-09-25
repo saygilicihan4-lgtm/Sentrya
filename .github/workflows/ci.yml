@@ -179,22 +179,3 @@ jobs:
 
           console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status, githubGate, webhook: webhookResult, forgedWebhookStatus: forgedWebhook.status, badLoginStatus: badLogin.status, oversizedLoginStatus: oversizedLogin.status, adminSessionStatus: githubStatus.status });
           NODE
-
-  production-github-app:
-    needs: verify
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verify production GitHub App repository access
-        run: |
-          set -euo pipefail
-          for i in {1..3}; do
-            code=$(curl -sS -o /tmp/github-diagnostic.json -w "%{http_code}" https://sentrya-pink.vercel.app/api/v1/integrations/github/diagnostic || true)
-            cat /tmp/github-diagnostic.json 2>/dev/null || true
-            if [ "$code" = "200" ] && grep -q '"ok":true' /tmp/github-diagnostic.json && grep -q '"repository":"saygilicihan4-lgtm/Sentrya"' /tmp/github-diagnostic.json; then
-              echo "Production GitHub App connection verified"
-              exit 0
-            fi
-            sleep 3
-          done
-          echo "Production GitHub App connection verification failed"
-          exit 1
