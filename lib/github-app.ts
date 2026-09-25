@@ -15,8 +15,8 @@ function normalizePrivateKey(value: string) {
   if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
     key = key.slice(1, -1).trim();
   }
-  if (!key.includes("-----BEGIN ") && /^[A-Za-z0-9+/=\\s]+$/.test(key)) {
-    const body = key.replace(/\\s+/g, "");
+  if (!key.includes("-----BEGIN ") && /^[A-Za-z0-9+/=\s]+$/.test(key)) {
+    const body = key.replace(/\s+/g, "");
     const lines = body.match(/.{1,64}/g)?.join("\n") ?? body;
     key = "-----BEGIN RSA PRIVATE KEY-----\n" + lines + "\n-----END RSA PRIVATE KEY-----";
   }
