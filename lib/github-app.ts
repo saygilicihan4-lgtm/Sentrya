@@ -26,7 +26,7 @@ function normalizePrivateKey(value: string) {
 export function getGitHubAppConfig(): GitHubAppConfig | null {
   const appId = process.env.SENTRYA_GITHUB_APP_ID ?? "";
   const installationId = process.env.SENTRYA_GITHUB_INSTALLATION_ID ?? "";
-  const privateKey = (process.env.SENTRYA_GITHUB_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
+  const privateKey = normalizePrivateKey(process.env.SENTRYA_GITHUB_PRIVATE_KEY ?? "");
   if (!appId || !installationId || !privateKey) return null;
   return { appId, installationId, privateKey };
 }
