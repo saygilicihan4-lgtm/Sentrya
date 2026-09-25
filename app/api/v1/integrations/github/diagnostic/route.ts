@@ -19,7 +19,16 @@ export async function GET() {
   try {
     jwt = createGitHubAppJwt(config);
   } catch {
-    return NextResponse.json({ ok: false, stage: "private-key-signing" }, { status: 503 });
+    return NextResponse.json({
+      ok: false,
+      stage: "private-key-signing",
+      keyShape: {
+        length: config.privateKey.length,
+        beginsWithPemHeader: config.privateKey.trimStart().startsWith("-----BEGIN "),
+        hasPemFooter: config.privateKey.includes("-----END "),
+        lineCount: config.privateKey.split("\n").length
+      }
+    }, { status: 503 });
   }
 
   const tokenResponse = await fetch(
