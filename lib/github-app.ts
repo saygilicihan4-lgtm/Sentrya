@@ -10,6 +10,19 @@ function base64url(value: string | Buffer) {
   return Buffer.from(value).toString("base64url");
 }
 
+function normalizePrivateKey(value: string) {
+  let key = value.replace(/\\n/g, "\n").trim();
+  if ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) {
+    key = key.slice(1, -1).trim();
+  }
+  if (!key.includes("-----BEGIN ") && /^[A-Za-z0-9+/=\\s]+$/.test(key)) {
+    const body = key.replace(/\\s+/g, "");
+    const lines = body.match(/.{1,64}/g)?.join("\n") ?? body;
+    key = "-----BEGIN RSA PRIVATE KEY-----\n" + lines + "\n-----END RSA PRIVATE KEY-----";
+  }
+  return key;
+}
+
 export function getGitHubAppConfig(): GitHubAppConfig | null {
   const appId = process.env.SENTRYA_GITHUB_APP_ID ?? "";
   const installationId = process.env.SENTRYA_GITHUB_INSTALLATION_ID ?? "";
