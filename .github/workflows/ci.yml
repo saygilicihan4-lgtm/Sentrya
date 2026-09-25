@@ -190,3 +190,15 @@ jobs:
           response=$(curl --fail --silent --show-error https://sentrya-pink.vercel.app/api/v1/integrations/github/delivery-check)
           echo "$response"
           echo "$response" | grep -q '"ok":true'
+
+  redeliver-github-webhook:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Redeliver and verify real GitHub webhook
+        run: |
+          set -euo pipefail
+          response=$(curl --fail --silent --show-error https://sentrya-pink.vercel.app/api/v1/integrations/github/redeliver-check)
+          echo "$response"
+          echo "$response" | grep -q '"ok":true'
+          echo "$response" | grep -Eq '"statusCode":(200|"200")'
