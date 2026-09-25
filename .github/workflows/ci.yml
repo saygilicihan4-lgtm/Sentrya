@@ -187,7 +187,7 @@ jobs:
       - name: Redeliver and verify GitHub ping
         run: |
           set -euo pipefail
-          response=$(curl --fail --silent --show-error https://sentrya-pink.vercel.app/api/v1/integrations/github/redeliver-check)
+          response=$(curl --silent --show-error https://sentrya-pink.vercel.app/api/v1/integrations/github/redeliver-check)
           echo "$response"
           echo "$response" | grep -q '"ok":true'
           echo "$response" | grep -q '"status":"OK"'
