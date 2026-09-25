@@ -24,7 +24,7 @@ export async function GET(req: Request) {
         headers: {
           accept: "application/vnd.github+json",
           authorization: "Bearer " + installation.token,
-          "x-github-api-version": "2026-03-10",
+          "x-github-api-version": "2022-11-28",
           "user-agent": "sentrya-control-plane"
         },
         cache: "no-store"
