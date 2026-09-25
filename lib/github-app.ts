@@ -1,4 +1,4 @@
-import { createSign } from "crypto";
+import { createHmac, createSign } from "crypto";
 
 type GitHubAppConfig = {
   appId: string;
@@ -74,4 +74,15 @@ export async function createInstallationToken() {
     token: data.token,
     expiresAt: typeof data.expires_at === "string" ? data.expires_at : null
   };
+}
+
+
+export function getGitHubWebhookSecret() {
+  const explicit = process.env.SENTRYA_GITHUB_WEBHOOK_SECRET ?? "";
+  if (explicit) return explicit;
+  const config = getGitHubAppConfig();
+  if (!config) return "";
+  return createHmac("sha256", config.privateKey)
+    .update("sentrya-github-webhook-v1")
+    .digest("hex");
 }
