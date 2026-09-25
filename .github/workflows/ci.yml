@@ -179,3 +179,14 @@ jobs:
 
           console.log("runtime smoke passed", { deny: evaluation, approval, allowed, invalidStatus: invalid.status, signed: signedResult, forgedStatus: forged.status, githubGate, webhook: webhookResult, forgedWebhookStatus: forgedWebhook.status, badLoginStatus: badLogin.status, oversizedLoginStatus: oversizedLogin.status, adminSessionStatus: githubStatus.status });
           NODE
+
+  check-github-deliveries:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check GitHub App webhook deliveries
+        run: |
+          set -euo pipefail
+          response=$(curl --fail --silent --show-error https://sentrya-pink.vercel.app/api/v1/integrations/github/delivery-check)
+          echo "$response"
+          echo "$response" | grep -q '"ok":true'
