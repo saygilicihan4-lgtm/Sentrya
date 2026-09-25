@@ -21,6 +21,6 @@ export async function GET() {
   await new Promise(r=>setTimeout(r,2500));
   const check=await fetch("https://api.github.com/app/hook/deliveries/"+id,{headers:headers(jwt),cache:"no-store"});
   if(!check.ok) return NextResponse.json({ok:false,stage:"check",githubStatus:check.status},{status:502});
-  const data=await check.json() as {status?:unknown,status_code?:unknown,event?:unknown,redelivery?:unknown};
-  return NextResponse.json({ok:true,event:data.event??null,status:data.status??null,statusCode:data.status_code??null,redelivery:data.redelivery===true,deliveryIdExposed:false});
+  const data=await check.json() as {status?:unknown,status_code?:unknown,event?:unknown,redelivery?:unknown,response?:{status?:unknown,status_code?:unknown,payload?:unknown}};
+  return NextResponse.json({ok:true,event:data.event??null,status:data.status??null,statusCode:data.status_code??null,responseStatus:data.response?.status??null,responseStatusCode:data.response?.status_code??null,responsePayload:typeof data.response?.payload==="string"?data.response.payload.slice(0,500):null,redelivery:data.redelivery===true,deliveryIdExposed:false});
 }
